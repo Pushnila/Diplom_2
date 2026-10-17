@@ -16,3 +16,13 @@ def registered_user():
 
     if access_token:
         delete_user(access_token)
+
+
+@pytest.fixture
+def access_tokens_for_cleanup():
+    access_tokens = []
+
+    yield access_tokens
+
+    for access_token in access_tokens:
+        delete_user(access_token)

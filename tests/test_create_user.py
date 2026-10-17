@@ -1,7 +1,7 @@
 import allure
 import pytest
 
-from helpers import create_user, delete_user, generate_user_data
+from helpers import create_user, generate_user_data
 
 
 @allure.epic('Stellar Burgers API')
@@ -9,19 +9,15 @@ from helpers import create_user, delete_user, generate_user_data
 class TestCreateUser:
 
     @allure.title('Можно создать уникального пользователя')
-    def test_create_unique_user_success(self):
+    def test_create_unique_user_success(self, access_tokens_for_cleanup):
         user_data = generate_user_data()
         response = create_user(user_data)
         response_body = response.json()
-        access_token = response_body.get('accessToken')
+        access_tokens_for_cleanup.append(response_body['accessToken'])
 
-        try:
-            assert response.status_code == 200
-            assert response_body['success'] is True
-            assert access_token is not None
-        finally:
-            if access_token:
-                delete_user(access_token)
+        assert response.status_code == 200
+        assert response_body['success'] is True
+        assert response_body['accessToken'] is not None
 
     @allure.title('Нельзя создать пользователя, который уже зарегистрирован')
     def test_create_duplicate_user_returns_error(self, registered_user):
