@@ -1,9 +1,7 @@
-﻿import allure
+import allure
 import pytest
-import requests
 
-from data import REQUEST_TIMEOUT
-from urls import Urls
+from helpers import login_user
 
 
 @allure.epic('Stellar Burgers API')
@@ -12,11 +10,7 @@ class TestLoginUser:
 
     @allure.title('Существующий пользователь может войти')
     def test_login_existing_user_success(self, registered_user):
-        response = requests.post(
-            Urls.LOGIN_USER,
-            json=registered_user['user_data'],
-            timeout=REQUEST_TIMEOUT
-        )
+        response = login_user(registered_user['user_data'])
 
         assert response.status_code == 200
         assert response.json()['success'] is True
@@ -29,26 +23,19 @@ class TestLoginUser:
             ('email', 'wrong_email@ya.ru'),
             ('password', 'wrong_password'),
         ],
-        ids=['wrong-email', 'wrong-password']
+        ids=['wrong-email', 'wrong-password'],
     )
     def test_login_with_wrong_credentials_returns_error(
         self,
         registered_user,
         field,
-        wrong_value
+        wrong_value,
     ):
         login_data = registered_user['user_data'].copy()
         login_data[field] = wrong_value
 
-        response = requests.post(
-            Urls.LOGIN_USER,
-            json=login_data,
-            timeout=REQUEST_TIMEOUT
-        )
+        response = login_user(login_data)
 
         assert response.status_code == 401
         assert response.json()['success'] is False
-        assert (
-            response.json()['message']
-            == 'email or password are incorrect'
-        )
+        assert response.json()['message'] == 'email or password are incorrect'
